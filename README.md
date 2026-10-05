@@ -2,6 +2,22 @@
 
 This repository is meant to be a template for building your own custom [bootc](https://github.com/bootc-dev/bootc) image. This template is the recommended way to make customizations to any image published by the Universal Blue Project.
 
+# Customizations
+
+This image builds on top of `ghcr.io/ublue-os/bazzite:stable` with the following additions, all done at image build time:
+
+- **Kernel**: CachyOS `kernel-cachyos-lto` (Clang LTO kernel) from the [bieszczaders/kernel-cachyos-lto](https://copr.fedorainfracloud.org/coprs/bieszczaders/kernel-cachyos-lto/) COPR, replacing the stock Fedora kernel (the `install-kernel-akmods` Bazzite pattern is used: scriptlet shims, `rpm --erase --nodeps`, versionlock).
+- **NVIDIA open drivers** from the [negativo17](https://negativo17.org/) repository: `akmod-nvidia` and the userland stack, with the kernel modules built against the CachyOS kernel using the Clang-patched `akmods` shipped by the same COPR.
+- **CachyOS addons** from the [bieszczaders/kernel-cachyos-addons](https://copr.fedorainfracloud.org/coprs/bieszczaders/kernel-cachyos-addons/) COPR: `cachyos-settings`, `scx-scheds`, `scx-tools`, `scx-manager`, `ananicy-cpp` and `cachyos-ananicy-rules`.
+- **MediaTek MT7927 WiFi + MT6639 Bluetooth**: out-of-tree patched modules from [jetm/mediatek-mt7927-dkms](https://github.com/jetm/mediatek-mt7927-dkms) (pinned release), prebuilt against the CachyOS kernel and installed to `/usr/lib/modules/<kver>/updates/`, plus the Bluetooth firmware blob (`BT_RAM_CODE_MT6639_2_1_hdr.bin`) that `linux-firmware` does not ship yet.
+
+## Caveats
+
+- **Secure Boot**: the CachyOS kernel and the built modules are not signed with a Microsoft-trusted key. Disable Secure Boot or enroll your own MOK key.
+- The Bazzite kmods built for the stock kernel (`xone`, `xpadneo`, `openrazer`, `wl`, `kvmfr`...) are removed since they cannot load on the CachyOS kernel; `v4l2loopback` is provided by the CachyOS kernel itself.
+- The NVIDIA open driver supports Turing (RTX 20 series) and newer GPUs.
+- The MT7927 build downloads a kernel tarball from kernel.org and a driver ZIP from the ASUS CDN at build time.
+
 # Community
 
 If you have questions about this template after following the instructions, try the following spaces:
