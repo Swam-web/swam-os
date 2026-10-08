@@ -1,0 +1,58 @@
+---
+# yaml-language-server: $schema=https://schema.blue-build.org/recipe-v1.json
+name: swam-os-bazzite
+description: Bazzite-based custom image with CachyOS kernel, NVIDIA open, MT7927/MT6639 and Xbox controllers
+base-image: ghcr.io/ublue-os/bazzite
+image-version: stable
+platforms:
+  - linux/amd64
+modules:
+  # Copie de system_files -> / (équivalent du cp -avf /ctx/system_files/. /)
+  - type: files
+    files:
+      - source: system
+        destination: /
+
+  # COPRs + kernel CachyOS clang-LTO remplaçant le kernel stock Fedora
+  - type: script
+    scripts:
+      - kernel-cachyos.sh
+
+  # NVIDIA open negativo17 : userland + kmods rpmbuild clang contre le kernel CachyOS
+  - type: script
+    scripts:
+      - nvidia.sh
+
+  # MediaTek MT7927 WiFi + MT6639 Bluetooth (modules précompilés)
+  - type: script
+    scripts:
+      - mt7927.sh
+
+  # Manettes Xbox : xone (dongle USB) + xpadneo (Bluetooth)
+  - type: script
+    scripts:
+      - xone-xpadneo.sh
+
+  # Addons CachyOS, paquets système, services
+  - from-file: base/packages.yml
+
+  # Nettoyage : toolchain de build, repos et COPR de build désactivés
+  - type: script
+    scripts:
+      - cleanup.sh
+
+  # Initramfs (équivaut au « dracut --kver … --add ostree --add fido2 » du build.sh)
+  - type: initramfs
+
+  # Politiques de signature cosign (rpm-ostree + bootc)
+  - type: signing
+
+# =============================================================================
+# NOTE base-image — VOLONTAIREMENT pas de digest (tag flottant `stable`).
+# L'ancien Containerfile épinglait bazzite:stable@sha256:9556db65… (build du
+# 2 sept. 2026) qui embarque KWin 6.7.4 : régression du compositeur dans les
+# VM à graphisme non accéléré (virtio-gpu) -> « Failed to find a working output
+# layer configuration » / « Applying output configuration failed » -> écran noir
+# après le logo. Corrigé dans Plasma 6.7.5 (8 sept. 2026). Avec le tag flottant,
+# la base suit les mises à jour Fedora 44 et embarque KWin >= 6.7.5.
+# =============================================================================
