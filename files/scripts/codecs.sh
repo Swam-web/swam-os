@@ -13,11 +13,16 @@ set -ouex pipefail
 
 FEDORA="$(rpm -E %fedora)"
 
-### 1. Dépôts RPMFusion : free + nonfree + tainted (tainted = libdvdcss)
+### 1. Dépôts RPMFusion : free + nonfree (URLs officielles de la doc)
 dnf5 -y install \
     "https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-${FEDORA}.noarch.rpm" \
-    "https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-${FEDORA}.noarch.rpm" \
-    "https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-tainted-${FEDORA}.noarch.rpm"
+    "https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-${FEDORA}.noarch.rpm"
+
+### 1b. Dépôt tainted (nécessaire pour libdvdcss) : par NOM de paquet.
+###     Il n'existe PAS d'URL « -release-tainted » dans free/ (404 vérifié en
+###     build) ; le paquet est fourni par rpmfusion-free, activé juste au-dessus.
+###     C'est la procédure exacte de la doc RPMFusion.
+dnf5 -y install rpmfusion-free-release-tainted
 
 ### 2. openh264 vit dans un dépôt Fedora désactivé par défaut
 dnf5 config-manager setopt fedora-cisco-openh264.enabled=1
@@ -44,9 +49,11 @@ dnf5 -y install mesa-dri-drivers.i686 mesa-vulkan-drivers.i686 vulkan-loader.i68
 dnf5 -y install mesa-va-drivers-freeworld.i686
 dnf5 -y swap mesa-vulkan-drivers.i686 mesa-vulkan-drivers-freeworld.i686
 
-### 8. Contrôle : le build échoue plutôt que de livrer une image sans codecs
+### 8. Contrôle : le build échoue plutôt que de livrer une image sans codecs.
+###     Attention : l'étape 7 a SWAPPÉ mesa-vulkan-drivers.i686 vers la variante
+###     freeworld — c'est donc celle-là qu'il faut contrôler, pas l'originale.
 for p in ffmpeg mesa-va-drivers-freeworld libdvdcss gstreamer1-plugin-openh264 \
-         mesa-dri-drivers.i686 mesa-vulkan-drivers.i686; do
+         mesa-dri-drivers.i686 mesa-vulkan-drivers-freeworld.i686; do
     rpm -q "$p" >/dev/null 2>&1 || { echo "ERREUR : paquet manquant -> $p"; exit 1; }
 done
 echo "codecs système : OK"
