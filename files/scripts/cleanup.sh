@@ -1,9 +1,8 @@
 #!/usr/bin/env bash
 
-### Nettoyage final
+# Nettoyage final
 set -ouex pipefail
 
-### Cleanup
 ## Kernel modules are prebuilt, remove the build toolchain
 dnf5 -y remove kernel-cachyos-lto-devel
 dnf5 versionlock delete kernel-cachyos-lto-devel || true

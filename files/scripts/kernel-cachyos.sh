@@ -1,15 +1,14 @@
 #!/usr/bin/env bash
 
-### Kernel CachyOS (clang LTO) remplacant le kernel stock Fedora
+# Kernel CachyOS (clang LTO) remplaçant le kernel stock Fedora
+## Shim the kernel-install scriptlets so dracut/rpm-ostree are not triggered
+## during the build, following the Bazzite install-kernel-akmods pattern.
 set -ouex pipefail
 
 ### Enable COPRs (CachyOS kernel + addons)
 dnf5 -y copr enable bieszczaders/kernel-cachyos-lto
 dnf5 -y copr enable bieszczaders/kernel-cachyos-addons
 
-### CachyOS kernel (clang LTO) replacing the stock Fedora kernel
-## Shim the kernel-install scriptlets so dracut/rpm-ostree are not triggered
-## during the build, following the Bazzite install-kernel-akmods pattern.
 pushd /usr/lib/kernel/install.d
 for script in 05-rpmostree.install 50-dracut.install; do
     if [[ -f "${script}" ]]; then

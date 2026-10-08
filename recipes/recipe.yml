@@ -1,58 +1,47 @@
 ---
 # yaml-language-server: $schema=https://schema.blue-build.org/recipe-v1.json
-name: swam-os-bazzite
-description: Bazzite-based custom image with CachyOS kernel, NVIDIA open, MT7927/MT6639 and Xbox controllers
-base-image: ghcr.io/ublue-os/bazzite
-image-version: stable
+name: swam-os-kinoite-amd
+description: Kinoite-based custom image with CachyOS kernel and AMD ROCm
+base-image: quay.io/fedora-ostree-desktops/kinoite
+image-version: 44
 platforms:
   - linux/amd64
 modules:
-  # Copie de system_files -> / (équivalent du cp -avf /ctx/system_files/. /)
+  # Copie de system_files -> / (équivalent du cp -avf du build.sh d'origine)
   - type: files
     files:
       - source: system
         destination: /
 
-  # COPRs + kernel CachyOS clang-LTO remplaçant le kernel stock Fedora
+  # Kernel CachyOS clang-LTO remplaçant le kernel Fedora
+  # (shims kernel-install, rpm --erase --nodeps, versionlock)
   - type: script
     scripts:
       - kernel-cachyos.sh
 
-  # NVIDIA open negativo17 : userland + kmods rpmbuild clang contre le kernel CachyOS
+  # AMD ROCm : depot officiel AMD + pile userland
+  # (inclut le correctif /opt, sans lequel les RPM rocm-* ne s'installent pas)
   - type: script
     scripts:
-      - nvidia.sh
-
-  # MediaTek MT7927 WiFi + MT6639 Bluetooth (modules précompilés)
-  - type: script
-    scripts:
-      - mt7927.sh
-
-  # Manettes Xbox : xone (dongle USB) + xpadneo (Bluetooth)
-  - type: script
-    scripts:
-      - xone-xpadneo.sh
+      - rocm.sh
 
   # Addons CachyOS, paquets système, services
   - from-file: base/packages.yml
 
-  # Nettoyage : toolchain de build, repos et COPR de build désactivés
+  # Nettoyage : toolchain de build, repos et COPRs désactivés
   - type: script
     scripts:
       - cleanup.sh
 
-  # Initramfs (équivaut au « dracut --kver … --add ostree --add fido2 » du build.sh)
+  # Initramfs : régénéré pour le kernel CachyOS installé
+  # (équivaut au « dracut --kver … --add ostree --add fido2 » du build.sh)
   - type: initramfs
 
-  # Politiques de signature cosign (rpm-ostree + bootc)
+  # Politiques de signature cosign (rpm-ostree + bootc) — requis par la CI
   - type: signing
 
-# =============================================================================
-# NOTE base-image — VOLONTAIREMENT pas de digest (tag flottant `stable`).
-# L'ancien Containerfile épinglait bazzite:stable@sha256:9556db65… (build du
-# 2 sept. 2026) qui embarque KWin 6.7.4 : régression du compositeur dans les
-# VM à graphisme non accéléré (virtio-gpu) -> « Failed to find a working output
-# layer configuration » / « Applying output configuration failed » -> écran noir
-# après le logo. Corrigé dans Plasma 6.7.5 (8 sept. 2026). Avec le tag flottant,
-# la base suit les mises à jour Fedora 44 et embarque KWin >= 6.7.5.
-# =============================================================================
+# Caveats (identiques à la version d'origine) :
+# - Secure Boot : le kernel CachyOS et les modules ne sont pas signés
+#   avec une clé Microsoft-trustée. Désactiver Secure Boot ou enroll MOK.
+# - Le kernel CachyOS est clang/LTO : tout kmod tiers devrait être compilé
+#   pour cette ABI exacte (cette variante n'en embarque aucun).
