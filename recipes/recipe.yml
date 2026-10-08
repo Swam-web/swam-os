@@ -25,13 +25,36 @@ modules:
     scripts:
       - rocm.sh
 
+  # Codecs systeme (apps natives) : RPMFusion + acceleration VA-API AMD
+  - type: script
+    scripts:
+      - codecs.sh
+
+  # Wine + winetricks + protontricks
+  - type: script
+    scripts:
+      - wine.sh
+
   # Addons CachyOS, paquets système, services
   - from-file: base/packages.yml
+
+  # Gaming
+  - from-file: base/gaming.yml
 
   # Nettoyage : toolchain de build, repos et COPRs désactivés
   - type: script
     scripts:
       - cleanup.sh
+
+  # Arguments noyau — optimisation jeu
+  #   nowatchdog                : supprime la surveillance NMI (overhead pur)
+  #   amdgpu.ppfeaturemask      : debloque OC/undervolt (LACT, CoreCtrl)
+  #   amdgpu.gpu_recovery       : recupere d un crash GPU au lieu du gel
+  - type: kargs
+    kargs:
+      - nowatchdog
+      - amdgpu.ppfeaturemask=0xffffffff
+      - amdgpu.gpu_recovery=1
 
   # Initramfs : régénéré pour le kernel CachyOS installé
   # (équivaut au « dracut --kver … --add ostree --add fido2 » du build.sh)
