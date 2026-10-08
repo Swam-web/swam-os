@@ -3,6 +3,11 @@
 ### MediaTek MT7927 WiFi + MT6639 Bluetooth (modules out-of-tree prebuildes)
 set -ouex pipefail
 
+# KERNEL_VERSION est recalcule ici : chaque module `script` de BlueBuild
+# tourne dans un shell neuf (dans le build.sh d'origine la variable etait
+# definie une seule fois et reutilisee par les sections suivantes).
+KERNEL_VERSION="$(rpm -q kernel-cachyos-lto --queryformat '%{VERSION}-%{RELEASE}.%{ARCH}')"
+
 ### MediaTek MT7927 WiFi + MT6639 Bluetooth
 ## Out-of-tree patched modules from jetm/mediatek-mt7927-dkms, prebuilt
 ## in the image against the CachyOS kernel (dkms does not work on bootc).

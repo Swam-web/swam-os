@@ -3,6 +3,11 @@
 ### NVIDIA open drivers (negativo17), modules construits avec clang contre le kernel CachyOS
 set -ouex pipefail
 
+# KERNEL_VERSION est recalcule ici : chaque module `script` de BlueBuild
+# tourne dans un shell neuf (dans le build.sh d'origine la variable etait
+# definie une seule fois et reutilisee par les sections suivantes).
+KERNEL_VERSION="$(rpm -q kernel-cachyos-lto --queryformat '%{VERSION}-%{RELEASE}.%{ARCH}')"
+
 ### Enable the negativo17 NVIDIA repository (open drivers)
 cat > /etc/yum.repos.d/negativo17-fedora-nvidia.repo <<'EOF'
 [fedora-nvidia]
