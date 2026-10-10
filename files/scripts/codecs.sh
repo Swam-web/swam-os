@@ -14,7 +14,9 @@ set -ouex pipefail
 FEDORA="$(rpm -E %fedora)"
 
 ### 1. Dépôts RPMFusion : free + nonfree (URLs officielles de la doc)
-dnf5 -y install \
+### --refresh : métadonnées en cache vs versions retirées des miroirs
+### (ex: mesa supplantée -> "All mirrors were tried", cf. dépôt kinoite-nvidia)
+dnf5 -y --refresh install \
     "https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-${FEDORA}.noarch.rpm" \
     "https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-${FEDORA}.noarch.rpm"
 

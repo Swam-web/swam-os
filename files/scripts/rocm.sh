@@ -40,7 +40,9 @@ rm -f /opt && mkdir -p /opt
 ## L'ICD loader fourni par la base entre en conflit avec le Provide ocl-icd
 ## attendu par rocm-opencl. On l'echange (|| true : absent = rien a faire).
 dnf5 -y remove OpenCL-ICD-Loader || true
-dnf5 -y install ocl-icd
+## --refresh : métadonnées en cache vs versions retirées des miroirs
+## (cf. dépôt kinoite-nvidia)
+dnf5 -y --refresh install ocl-icd
 
 ### Pile userland ROCm
 ## rocm-hip-runtime est ce dont Proton/VA-API ont besoin ; rocm-smi et
