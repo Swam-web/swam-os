@@ -16,7 +16,7 @@ modules MediaTek MT7927, ni modules manettes** — c'est la variante minimale c�
 | | Détail |
 |---|---|
 | **Kernel** | CachyOS `kernel-cachyos-lto` (Clang LTO) — COPR `bieszczaders/kernel-cachyos-lto`, remplace le kernel Fedora (pattern `install-kernel-akmods` : shims des scriptlets `kernel-install`, `rpm --erase --nodeps`, versionlock). |
-| **AMD ROCm** | dépôt officiel AMD `repo.radeon.com/rocm/rhel9/latest/main/` — Fedora n'étant pas une cible officielle, ce sont les paquets **RHEL 9** qui sont utilisés. Pile userland : `rocm-core`, `rocm-hip-runtime`, `rocm-opencl-runtime`, `rocm-hip-libraries`, `rocm-libs`, `rocm-smi`. **Aucun dkms** : `amdgpu` est le pilote in-tree du kernel (CachyOS compris) ; le dépôt AMD ne propose qu'`amdgpu-dkms`, inutilisable sur bootc. `OpenCL-ICD-Loader` (fourni par la base) est remplacé par `ocl-icd`, requis par `rocm-opencl`. Le dépôt AMD **reste activé** sur l'image finale (mises à jour ROCm). |
+| **AMD ROCm (minimal gaming)** | dépôt officiel AMD `repo.radeon.com/rocm/rhel9/latest/main/` — Fedora n'étant pas une cible officielle, ce sont les paquets **RHEL 9** qui sont utilisés. Pile **minimale gaming** : `rocm-core`, `rocm-opencl-runtime`, `rocm-smi`. **Sans la pile HIP** (`rocm-hip-runtime`, `rocm-hip-libraries`, `rocm-libs`/rocBLAS ≈ 5-6 Go) : inutile aux jeux (Vulkan/DXVK via mesa) — qui en a besoin : `rpm-ostree install rocm-hip-runtime rocm-libs`. **Aucun dkms** : `amdgpu` est le pilote in-tree du kernel (CachyOS compris) ; le dépôt AMD ne propose qu'`amdgpu-dkms`, inutilisable sur bootc. `OpenCL-ICD-Loader` (fourni par la base) est remplacé par `ocl-icd`, requis par `rocm-opencl`. Le dépôt AMD **reste activé** sur l'image finale (mises à jour ROCm). |
 | **Addons CachyOS** | `cachyos-settings`, `scx-scheds`, `scx-tools`, `scx-manager`, `ananicy-cpp`, `cachyos-ananicy-rules`. |
 | **Impression / scan / découverte / firewall** | `cups`, `hplip`, `avahi`, `firewalld` (+ `firewall-config`, `firewall-applet`, `tmux`). Services `cups`, `avahi-daemon`, `firewalld`, `podman.socket` activés. |
 | **fido2** | module `fido2` ajouté à l'initramfs (déverrouillage LUKS par clé FIDO2). |
@@ -65,7 +65,7 @@ Dans le système installé :
 
 ```bash
 ls -ld /opt/rocm*                    # ROCm 7 s'installe dans /opt/rocm-<version>
-/usr/bin/rpm -q rocm-core rocm-hip-runtime rocm-opencl-runtime rocm-hip-libraries rocm-libs rocm-smi
+/usr/bin/rpm -q rocm-core rocm-opencl-runtime rocm-smi
 command -v rocminfo rocm-smi         # outils du runtime
 rocminfo | head -30                  # LE test qui tranche : agents HSA + device AMD
 clinfo -l                            # doit lister une plateforme AMD « ROCm »

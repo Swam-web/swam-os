@@ -44,24 +44,22 @@ dnf5 -y remove OpenCL-ICD-Loader || true
 ## (cf. dépôt kinoite-nvidia)
 dnf5 -y --refresh install ocl-icd
 
-### Pile userland ROCm
-## rocm-hip-runtime est ce dont Proton/VA-API ont besoin ; rocm-smi et
-## rocm-opencl-runtime pour la gestion et l'OpenCL.
+### Pile ROCm — MINIMALE pour le gaming
+## HIP (rocm-hip-runtime, rocm-libs/rocBLAS…) = calcul GPU / IA (~5-6 Go),
+## inutile aux jeux : ils passent par Vulkan/DXVK (mesa). Qui en a besoin :
+##   rpm-ostree install rocm-hip-runtime rocm-libs
 dnf5 -y install \
     rocm-core \
-    rocm-hip-runtime \
     rocm-opencl-runtime \
-    rocm-hip-libraries \
-    rocm-libs \
     rocm-smi
 
 ### Verification : on echoue ici plutot que de livrer une image sans ROCm
-command -v rocminfo >/dev/null 2>&1 || {
-    echo "ERREUR : rocminfo absent — la pile ROCm n'a pas ete installee"
+command -v rocm-smi >/dev/null 2>&1 || {
+    echo "ERREUR : rocm-smi absent — la pile ROCm n'a pas ete installee"
     exit 1
 }
 ls -d /opt/rocm* >/dev/null 2>&1 || {
     echo "ERREUR : /opt/rocm* absent — les RPM rocm-* ne se sont pas installes"
     exit 1
 }
-echo "ROCm installe : $(ls -d /opt/rocm* | head -1)"
+echo "ROCm (minimal gaming) installe : $(ls -d /opt/rocm* | head -1)"
